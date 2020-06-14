@@ -1,9 +1,9 @@
-# Mis-cosas
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
 
-#define LISTA_CLIENTES "Clientes.dat"
+#define AR_CLIENTES "clientes.dat"
 typedef struct{
     int id;
     int nroCliente;
@@ -14,7 +14,7 @@ typedef struct{
     char domicilio[50];
     int movil;
     int baja; /// 1 si esta activo / 0 si esta dado de baja.
-}stClientes;
+}stCliente;
 typedef struct{
     int id;
     int idCliente;
@@ -23,34 +23,36 @@ typedef struct{
     int dia; ///1 a... depende los meses.
     int datosConsumidos;
     int baja; /// 1 activo / 0 de baja.
-}stConsumos;
+}stConsumo;
 
 #define ESC 27
 
 void menuPrincipal();
 void menuClientes();
 void menuConsumos();
-stClientes cargaUnCliente();
+stCliente cargaUnCliente();
 int validaEmail(char email[]);
-int cargarListaClientes(stClientes c[], int v, int dim);
-void guardarUnCliente(stClientes c);
+int cargarListaClientes(stCliente c[], int v, int dim);
+void guardarUnCliente(stCliente c);
 void cargarArchListaClientes();
 int buscoUltimoID();
-void muestraUnCliente(stClientes c);
+void muestraUnCliente(stCliente c);
 void mostrarArchClientes();
-stClientes buscaClienteArchxNroCliente(int nroCliente);
+stCliente buscaClienteArchxNroCliente(int nroCliente);
 void encontrarClienteArch();
-void modificarClienteArch(stClientes c);
+void modificarClienteArch(stCliente c);
 void menuModificacionDatos();
 int buscaPosicion(int id);
-void guardarClienteModificadoArch(stClientes c);
-void modifRegistro(stClientes c);
+void guardarClienteModificadoArch(stCliente c);
+void modifRegistro(stCliente c);
+void funcion05();
+stCliente buscaPosicionDNI(int dni);
 
 
 int main()
 {
-    stClientes Lista[30];
-    stConsumos Consumos[30];
+    stCliente Lista[30];
+    stConsumo Consumos[30];
     char opcion;
     char opcionCli;
     char opcionCon;
@@ -77,7 +79,9 @@ int main()
             case '3':
                 encontrarClienteArch();
                 system("pause");
-
+            case '4':
+                funcion05();
+                system("pause");
                 break;
             }
             }while(opcionCli!=ESC);
@@ -117,6 +121,7 @@ void menuClientes(){
     printf("1- Cargar un cliente nuevo...\n\n");
     printf("2- Mostrar lista de clientes...\n\n");
     printf("3- Modificar un cliente...\n\n");
+    printf("4- Dar de baja un cliente...\n\n");
     printf("\n\n");
     printf("ESC para salir...");
 
@@ -137,8 +142,8 @@ NO RECIBO NADA.
 CREO ESTRUCTURA, LA CARGO.
 RETORNO ESTRUCTURA CLIENTE.
 **********************************************/
-stClientes cargaUnCliente(){
-    stClientes c;
+stCliente cargaUnCliente(){
+    stCliente c;
 
     do{
         printf("\n Ingrese el nro de Cliente: ");
@@ -192,7 +197,7 @@ RECIBO EL ARREGLO, LOS VALIDOS, Y LA DIMENSION.
 CARGO EL ARREGLO Y EL ID DE CADA POSICION.
 RETORNO LOS VALIDOS.
 **********************************************/
-int cargarListaClientes(stClientes c[], int v, int dim){
+int cargarListaClientes(stCliente c[], int v, int dim){
     char opcion;
     while(v<dim && opcion!=ESC){
         system("cls");
@@ -209,10 +214,10 @@ GUARDAR UN CLIENTE EN UN ARCHIVO.
 RECIBO EL CLIENTE(ESTRUCTURA), ABRO ARCHIVO
 LO GUARDO Y LO CIERRO.
 **********************************************/
-void guardarUnCliente(stClientes c){
-    FILE *pArchClientes=fopen(LISTA_CLIENTES,"ab");
+void guardarUnCliente(stCliente c){
+    FILE *pArchClientes=fopen(AR_CLIENTES,"ab");
     if(pArchClientes){
-    fwrite(&c,sizeof(stClientes),1,pArchClientes);
+    fwrite(&c,sizeof(stCliente),1,pArchClientes);
     fclose(pArchClientes);
     }
 }
@@ -222,7 +227,7 @@ CREO UNA ESTRUCTURA Y LA METO EN UN BUCLE DE
 CARGA.
 **********************************************/
 void cargarArchListaClientes(){
-   stClientes c;
+   stCliente c;
     char opcion;
     while(opcion !=ESC){
         c=cargaUnCliente();
@@ -240,12 +245,12 @@ RECORRO EL CURSOR PARA BUSCAR EL ULTIMO ID.
 RETORNO LA ULTIMA POSICION.
 **********************************************/
 int buscoUltimoID(){
-    stClientes c;
+    stCliente c;
     int id=-1;
-    FILE *pArchClientes = fopen(LISTA_CLIENTES,"rb");
+    FILE *pArchClientes = fopen(AR_CLIENTES,"rb");
     if(pArchClientes){
-        fseek(pArchClientes,sizeof(stClientes)*(-1),SEEK_END);
-        if(fread(&c,sizeof(stClientes),1,pArchClientes)>0){
+        fseek(pArchClientes,sizeof(stCliente)*(-1),SEEK_END);
+        if(fread(&c,sizeof(stCliente),1,pArchClientes)>0){
             id=c.id;
         }
         fclose(pArchClientes);
@@ -255,7 +260,7 @@ int buscoUltimoID(){
 /**********************************************
 MUESTRO UN CLIENTE.
 **********************************************/
-void muestraUnCliente(stClientes c){
+void muestraUnCliente(stCliente c){
     printf("------------------------------------");
     printf("\nNumero de Cliente: %d\n", c.nroCliente);
     printf("\nNombre: %s\n", c.nombre);
@@ -270,10 +275,10 @@ void muestraUnCliente(stClientes c){
 MOSTRAR ARCHIVO DE CLIENTES.
 **********************************************/
 void mostrarArchClientes(){
-    stClientes c;
-    FILE *pArchClientes = fopen(LISTA_CLIENTES,"rb");
+    stCliente c;
+    FILE *pArchClientes = fopen(AR_CLIENTES,"rb");
     if(pArchClientes){
-        while(fread(&c,sizeof(stClientes),1,pArchClientes)>0){
+        while(fread(&c,sizeof(stCliente),1,pArchClientes)>0){
             muestraUnCliente(c);
         }
         fclose(pArchClientes);
@@ -285,12 +290,12 @@ RECIBO EL NUMERO DE CLIENTE, ABRO EL ARCHIVO Y
 COMPARO.
 SI LO ENCUENTRO RETORNO EL CLIENTE.
 **********************************************/
-stClientes buscaClienteArchxNroCliente(int nroCliente){
-    stClientes c;
+stCliente buscaClienteArchxNroCliente(int nroCliente){
+    stCliente c;
     int flag=0;
-    FILE *pArchClientes = fopen(LISTA_CLIENTES,"rb");
+    FILE *pArchClientes = fopen(AR_CLIENTES,"rb");
     if(pArchClientes){
-        while(flag==0 && fread(&c,sizeof(stClientes),1,pArchClientes)>0){
+        while(flag==0 && fread(&c,sizeof(stCliente),1,pArchClientes)>0){
            if(nroCliente == c.nroCliente){
             flag=1;
            }
@@ -309,7 +314,7 @@ FUNCION DONDE SE BUSCA AL CLIENTE Y LO MUESTRA.
 void encontrarClienteArch(){
 
     int nroCliente;
-    stClientes c;
+    stCliente c;
     printf("Ingrese el numero de cliente que desea modificar: ");
     scanf("%d", &nroCliente);
     system("cls");
@@ -344,7 +349,7 @@ void menuModificacionDatos(){
 MODIFICAR UN CLIENTE DEL ARCHIVO.
 RECIBO UN CLIENTE, LO MODIFICO.
 **********************************************/
-void modificarClienteArch(stClientes c){
+void modificarClienteArch(stCliente c){
     char opcion;
     do{
         system("cls");
@@ -419,12 +424,12 @@ RETORNO LA POSICION.
 **********************************************/
 int buscaPosicion(int id){
     int pos=-1;
-    stClientes c;
-    FILE *pArchClientes = fopen(LISTA_CLIENTES,"rb");
+    stCliente c;
+    FILE *pArchClientes = fopen(AR_CLIENTES,"rb");
     if(pArchClientes){
-        while(pos == -1 && fread(&c, sizeof(stClientes), 1, pArchClientes) > 0){
+        while(pos == -1 && fread(&c, sizeof(stCliente), 1, pArchClientes) > 0){
             if(c.id == id){
-                pos = ftell(pArchClientes)/sizeof(stClientes)-1;
+                pos = ftell(pArchClientes)/sizeof(stCliente)-1;
             }
         }
         fclose(pArchClientes);
@@ -437,14 +442,56 @@ MODIFICO EL REGSITRO DE UN CLIENTE EN ARCHIVO.
 RECIBO UN CLIENTE MODIFICADO Y LO GUARDO POR SU
 ID.
 **********************************************/
-void modifRegistro(stClientes c){
+void modifRegistro(stCliente c){
     int pos;
     pos = buscaPosicion(c.id);
-    FILE *pArchClientes = fopen(LISTA_CLIENTES, "r+b");
+    FILE *pArchClientes = fopen(AR_CLIENTES, "r+b");
     if(pArchClientes){
-        fseek(pArchClientes, sizeof(stClientes)*pos, SEEK_SET); /// depende de lo que retorne buscaPosicion()
-        fwrite(&c, sizeof(stClientes), 1, pArchClientes);
+        fseek(pArchClientes, sizeof(stCliente)*pos, SEEK_SET); /// depende de lo que retorne buscaPosicion()
+        fwrite(&c, sizeof(stCliente), 1, pArchClientes);
         fclose(pArchClientes);
     }
 }
 
+void funcion05()
+{
+    int DNI = 0;
+    stCliente c;
+    printf("\t Dar de baja un cliente \n");
+    printf("Ingrese el DNI del cliente\n");
+    scanf("%d", &DNI);                     ///Pedimos el DNI al usuario del cliente a dar de baja
+
+
+    c = buscaPosicionDNI(DNI);             ///Buscamos y retornamos en c el cliente con el DNI buscado
+    c.baja = 1;                            ///Modificamos la variable baja y la ponemos en 1
+    if(c.id == -1){                        ///En el caso de que el cliente con el DNI no hubiese existido mostramos el mensaje
+        printf("El cliente no existe, ingrese un DNI valido \n");
+    }else {                                ///Si el ID es es distinto de -1 modificamos el cliente con la funcion de modifRegistro
+        modifRegistro(c);
+    }
+
+}
+stCliente buscaPosicionDNI(int dni){
+
+    stCliente c;
+    int flag = 0;
+
+    FILE *pArchClientes = fopen(AR_CLIENTES,"rb"); ///abrimos archivo
+    if(pArchClientes)
+    {
+        while(flag == 0 && fread(&c, sizeof(stCliente), 1, pArchClientes) > 0) ///recorremos archivo si flag esta en 0
+        {
+            if(c.dni == dni) ///si hay coincidencia del dni del parametro con dni de archivo flag pasa a valer 1 y se corta el ciclo
+            {
+                flag = 1;
+            }
+        }
+        fclose(pArchClientes); ///cerramos archivo
+
+    }
+    if(flag == 0) ///si no se econtro el dni, retornamos el cliente con id -1
+    {
+        c.id=-1;
+    }
+    return c; ///retornamos el cliente
+}
