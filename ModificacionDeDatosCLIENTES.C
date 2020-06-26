@@ -90,11 +90,12 @@ void modificoBajaConsumo();
 void buscarConsumoFecha(int anio, int mes, int dia);
 void preguntaFechaConsumo();
 stConsumo ConsumoRandom();
-stConsumo CargaUnConsmoRandom();
+void CargaUnConsmoRandom();
 int buscarMesMAX();
 int cargarArreglo(int a[], int v, int mesMax);
 void mostrarArreglo(int a[], int v);
 int comprarMesMayor(int a[], int v);
+int verficaFecha(stConsumo a);
 
 
 int main()
@@ -1099,7 +1100,7 @@ void muestraUnConsumo(stConsumo c)
     printf("Dia: %d \n", c.dia);
     printf("Consumos en MB: %d \n", c.datosConsumidos);
     printf("\n  Baja s/n: %s \n", (c.baja)?"SI":"NO");
-    ///printf("\n  ID n %d", c.id);
+    printf("\n  ID n %d", c.id);
 }
 
 ///MUESTRA TODOS LOS CONSUMOS
@@ -1416,16 +1417,41 @@ stConsumo ConsumoRandom()
     return consumo; ///retorno un consumo con datos al azar
 }
 
-stConsumo CargaUnConsmoRandom()
+void CargaUnConsmoRandom()
 {
     stConsumo c;
+    stConsumo b;
+    int flag;
     for (int i=0; i<1000 ;i++){
         c = ConsumoRandom();
         c.id = buscoUltimoIDConsumos()+1;
-        guardarUnConsumo(c);
+        flag=verficaFecha(c);
+        if(flag!=1){
+            guardarUnConsumo(c);
+        }
     }
 
 }
+int verficaFecha(stConsumo a){
+    stConsumo c;
+    int flag=0;
+    FILE *pArchConsumo = fopen(AR_CONSUMOS,"rb");
+    if(pArchConsumo){
+        while(fread(&c,sizeof(stConsumo),1,pArchConsumo)> 0){
+            if(c.anio == a.anio && c.mes == a.mes && c.dia == a.dia && c.idCliente == a.idCliente){
+                c.datosConsumidos=a.datosConsumidos + c.datosConsumidos;
+                modifRegistroCONSUMOS(c);
+                flag=1;
+
+            }
+
+        }
+
+        fclose(pArchConsumo);
+    }
+    return flag;
+}
+
 int buscarMesMAX(){
     int mesMax=0;
     stConsumo a;
