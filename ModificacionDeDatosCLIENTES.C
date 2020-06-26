@@ -1,4 +1,3 @@
-# Tp-Final
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -92,6 +91,10 @@ void buscarConsumoFecha(int anio, int mes, int dia);
 void preguntaFechaConsumo();
 stConsumo ConsumoRandom();
 stConsumo CargaUnConsmoRandom();
+int buscarMesMAX();
+int cargarArreglo(int a[], int v, int mesMax);
+void mostrarArreglo(int a[], int v);
+int comprarMesMayor(int a[], int v);
 
 
 int main()
@@ -102,6 +105,10 @@ int main()
     char opcion;
     char opcionCli;
     char opcionCon;
+    int mesmax;
+    int Array[mesmax];
+    int vArreglo=1;
+    int mes=0;
 
 
     srand (time(NULL));
@@ -221,6 +228,17 @@ int main()
                     CargaUnConsmoRandom();
                     system("pause");
                     break;
+                case '7':
+
+                    mesmax=buscarMesMAX();
+                    vArreglo=cargarArreglo(Array,vArreglo,mesmax);
+                    mostrarArreglo(Array,vArreglo);
+                    system("pause");
+                    system("cls");
+                    mes=comprarMesMayor(Array,vArreglo);
+                    printf("El mes con datos mas consumidos es %d.\n\n",mes);
+                    system("pause");
+                    break;
 
                             }
 
@@ -267,7 +285,8 @@ void menuConsumos(){
     printf("3- Modificar consumo. \n\n");
     printf("4- Dar de baja un consumo.\n\n");
     printf("5- Mostrar consumos por fecha.\n\n");
-    printf("6- Cargar consumor random.");
+    printf("6- Cargar consumor random.\n\n");
+    printf("7- Estadistica, ¿En que mes se consume mas?.");
     printf("\n\n");
     printf("ESC para salir...");
 }
@@ -1391,7 +1410,7 @@ stConsumo ConsumoRandom()
     consumo.mes = randomRango(1,currentMes);
     consumo.dia = randomRango(1, diaMax(consumo.mes));
     consumo.anio = currentAnio;
-    consumo.datosConsumidos = randomRango(0,500);
+    consumo.datosConsumidos = randomRango(0,50);
     consumo.baja=0;
 
     return consumo; ///retorno un consumo con datos al azar
@@ -1406,4 +1425,59 @@ stConsumo CargaUnConsmoRandom()
         guardarUnConsumo(c);
     }
 
+}
+int buscarMesMAX(){
+    int mesMax=0;
+    stConsumo a;
+    FILE *pArchConsumo = fopen(AR_CONSUMOS,"rb");
+    if(pArchConsumo){
+            while(fread(&a,sizeof(stConsumo),1,pArchConsumo)>0){
+               if(mesMax<a.mes){
+                mesMax++;
+               }
+            }
+        fclose(pArchConsumo);
+    }
+    return mesMax;
+}
+
+int cargarArreglo(int a[], int v, int mesMax){
+    int suma;
+    stConsumo c;
+    FILE *pArchConsumo = fopen(AR_CONSUMOS,"rb");
+    if(pArchConsumo){
+            while(v<mesMax){
+               while(fread(&c,sizeof(stConsumo),1,pArchConsumo)>0){
+             if(v==c.mes){
+                suma=c.datosConsumidos+suma;
+                a[v]=suma;
+                v++;
+             }
+               }
+            }
+
+        fclose(pArchConsumo);
+    }
+
+    return v;
+}
+
+void mostrarArreglo(int a[], int v){
+    for(int i=1;i<v;i++){
+            if(i%10==0){
+                printf("\n");
+            }
+        printf("%d |",a[i]);
+    }
+}
+int comprarMesMayor(int a[], int v){
+    int mesMax=1;
+    int i=mesMax + 1;
+    while(i<v){
+        if(a[i]>a[mesMax]){
+            mesMax=i;
+        }
+        i++;
+    }
+    return mesMax;
 }
